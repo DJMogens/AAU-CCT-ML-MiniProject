@@ -7,34 +7,28 @@ from agent import DQNAgent
 from preprocessing import preprocess_state
 from utils import save_rewards, plot_rewards
 
-# Create a custom action wrapper
-class DiscreteActionWrapper(gym.ActionWrapper):
-    ACTIONS = [
-        np.array([0.0, 0.0, 0.0]),    # Do nothing
-        np.array([-1.0, 0.0, 0.0]),   # Steer left
-        np.array([1.0, 0.0, 0.0]),    # Steer right
-        np.array([0.0, 1.0, 0.0]),    # Gas
-        np.array([0.0, 0.0, 0.8])     # Brake
-    ]
-    
-    def __init__(self, env):
-        super().__init__(env)
-        self.action_space = gym.spaces.Discrete(len(self.ACTIONS))
-        
-    def action(self, action):
-        return self.ACTIONS[action]
-
 def train_agent(n_episodes=1000):
-    env = gym.make("CarRacing-v3", render_mode="human")
-    env = DiscreteActionWrapper(env)
-    state_shape = (96, 96, 1)  # Grayscale image
-    action_size = env.action_space.n
+    env = gym.make(
+        "CarRacing-v3",
+        render_mode="rgb_array",
+        lap_complete_percent=0.95,
+        domain_randomize=False,
+        continuous=False
+    )
+    action_size = env.action_space.n  # Correctly get the number of discrete actions
     output_dir = 'model_output/car_racing/'
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    agent = DQNAgent(state_shape, action_size)
+    agent = DQNAgent(state_shape=(96, 96, 1), action_size=action_size)
+
+    # Load existing model if available
+    model_path = f"{output_dir}weights_latest.keras"
+    if os.path.exists(model_path):
+        agent.load(model_path)
+        print("Loaded existing model.")
+
     total_rewards = []
 
     for e in range(n_episodes):
@@ -45,12 +39,12 @@ def train_agent(n_episodes=1000):
         time_step = 0
 
         while not done:
-            action = agent.act(state)
-            next_state, reward, terminated, truncated, _ = env.step(action)
+            action_index = agent.act(state)  # Get action as integer
+            next_state, reward, terminated, truncated, _ = env.step(action_index)  # Pass integer directly
             done = terminated or truncated
             total_reward += reward
             next_state = preprocess_state(next_state)
-            agent.remember(state, action, reward, next_state, done)
+            agent.remember(state, action_index, reward, next_state, done)
             state = next_state
             time_step += 1
 
@@ -65,12 +59,12 @@ def train_agent(n_episodes=1000):
 
         # Save the model every 50 episodes
         if (e + 1) % 50 == 0:
-            agent.model.save(f"{output_dir}weights_{e+1}.hdf5")
+            agent.model.save(f"{output_dir}weights_latest.keras")
             save_rewards(total_rewards)
             plot_rewards(total_rewards)
 
     # Save the final model
-    agent.model.save(f"{output_dir}weights_final.hdf5")
+    agent.model.save(f"{output_dir}weights_final.keras")
     save_rewards(total_rewards)
     plot_rewards(total_rewards)
 

@@ -1,0 +1,7 @@
+tensorflow
+numpy
+opencv-python
+matplotlib
+gymnasium[atari]
+gymnasium[vector]
+gymnasium[other]

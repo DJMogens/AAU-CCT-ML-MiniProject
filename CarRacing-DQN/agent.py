@@ -77,3 +77,11 @@ class DQNAgent:
         # Decay exploration rate
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+
+    def save(self, filepath):
+        """Saves the entire model to a file."""
+        self.model.save(filepath)
+
+    def load(self, filepath):
+        """Loads the entire model from a file."""
+        self.model = tf.keras.models.load_model(filepath)

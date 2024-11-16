@@ -1,3 +1,5 @@
+This project failed due to the contenuis nature of the game, which isn't suitable for DQN. The agent was unable to learn the game and failed to make any progress. The project was abandoned in favor of other projects.
+
 # CarRacing DQN Agent
 
 This project implements a Deep Q-Network (DQN) agent to play the [CarRacing-v3](https://www.gymlibrary.dev/environments/box2d/car_racing/) environment from OpenAI Gymnasium. The agent learns to navigate the car using reinforcement learning techniques.
@@ -23,3 +25,7 @@ To train the agent, run the following command:
 ```bash
 python train.py
 ```
+
+
+
+
